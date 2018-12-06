@@ -7,7 +7,7 @@ const cors = require('cors');
 const app = express();
 
 app.use(cors());
-
+mongoose.set('useFindAndModify', false);
 mongoose.connect('mongodb://wequantez3:hakangenc1@ds237373.mlab.com:37373/graphql-reactjs', { useNewUrlParser: true })
 mongoose.connection.once('open', () => {
     console.log('Connected to Database.');
