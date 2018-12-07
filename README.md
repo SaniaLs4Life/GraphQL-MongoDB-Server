@@ -1,1 +1,3 @@
-# GraphQL-ReactJs-MongoDB
+# GraphQL - MongoDB
+
+## Nodemon app
