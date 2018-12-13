@@ -2,6 +2,7 @@ const graphql = require('graphql');
 const _ = require('lodash');
 const Book = require('../models/book');
 const Author = require('../models/author');
+const User = require('../models/user');
 
 const { 
     GraphQLObjectType, 
@@ -43,6 +44,16 @@ const BookType = new GraphQLObjectType({
         }
     })
 });
+
+const UserType = new GraphQLObjectType({
+    name: 'User',
+    fields: () => ({
+        id: { type: GraphQLID },
+        fullname: { type: GraphQLString },
+        username: { type: GraphQLString },
+        password: { type: GraphQLString }
+    })
+})
 
 const AuthorType = new GraphQLObjectType({
     name: 'Author',
@@ -92,12 +103,28 @@ const RootQuery = new GraphQLObjectType({
                 //return authors
                 return Author.find({});
             }
-        }
+        },
+        allUsers: {
+            type: new GraphQLList(UserType),
+            resolve(parent, args) {
+                return User.find({});
+            }
+        },        
+        getUser: {
+            type: UserType,
+            args: {
+                username: { type: new GraphQLNonNull(GraphQLString) },
+                password: { type: new GraphQLNonNull(GraphQLString) }
+            },
+            resolve(parent, args) {                
+                return User.findOne({ $and: [{username: args.username}, { password: args.password}] }).exec();
+            }
+        },
     }
 });
 
 const Mutation = new GraphQLObjectType({
-    name: 'Mutattion',
+    name: 'Mutation',
     fields: {
         addAuthor: {
             type: AuthorType,
@@ -111,6 +138,22 @@ const Mutation = new GraphQLObjectType({
                     age: args.age
                 });
                 return author.save();
+            }
+        },
+        addUser: {
+            type: UserType,
+            args: {
+                fullname: { type: new GraphQLNonNull(GraphQLString) },
+                username: { type: new GraphQLNonNull(GraphQLString) },
+                password: { type: new GraphQLNonNull(GraphQLString) }
+            },
+            resolve(parent, args) {
+                let user = new User({
+                    fullname: args.fullname,
+                    username: args.username,
+                    password: args.password
+                });
+                return user.save();
             }
         },
         addBook: {
@@ -136,6 +179,16 @@ const Mutation = new GraphQLObjectType({
             },
             resolve(parent, args) {
                 return Book.findByIdAndRemove(args.id).exec();
+            }
+        },
+        login: {
+            type: UserType,
+            args: {
+                username: { type: new GraphQLNonNull(GraphQLString) },
+                password: { type: new GraphQLNonNull(GraphQLString) }
+            },
+            resolve(parent, args) {                
+                return User.findOne({ $and: [{username: args.username}, { password: args.password}] }).exec();
             }
         },
         deleteAuthor: {
